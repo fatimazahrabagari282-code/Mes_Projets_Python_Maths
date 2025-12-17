@@ -3,21 +3,13 @@ import math
 # --- FONCTIONS MATHÉMATIQUES ---
 
 def euclide_etendu(a, b):
-    """Retourne (pgcd, u, v) tel que a*u + b*v = pgcd"""
+    """Calcule le PGCD et les coefficients de Bézout (u, v)"""
     if a == 0:
         return b, 0, 1
     pgcd, u1, v1 = euclide_etendu(b % a, a)
     u = v1 - (b // a) * u1
     v = u1
     return pgcd, u, v
-
-def resoudre_diophantienne(a, b, c):
-    """Résout ax + by = c"""
-    pgcd, u0, v0 = euclide_etendu(a, b)
-    if c % pgcd != 0:
-        return None
-    facteur = c // pgcd
-    return pgcd, u0 * facteur, v0 * facteur
 
 def crible_eratosthene(n):
     """Retourne la liste des nombres premiers jusqu'à n"""
@@ -32,29 +24,25 @@ def crible_eratosthene(n):
 # --- FONCTIONS D'AFFICHAGE ---
 
 def afficher_tableau_premiers(liste, colonnes=10):
-    """Affiche une liste de nombres sous forme de tableau lisible"""
+    """Affiche les nombres premiers sous forme de tableau"""
     if not liste:
-        print("Aucun nombre premier trouvé.")
+        print("\nAucun nombre premier trouvé.")
         return
-    
-    print(f"\nNombre(s) premier(s) trouvé(s) : {len(liste)}")
+    print(f"\n[ RÉSULTAT : {len(liste)} nombres premiers trouvés ]")
     print("-" * (colonnes * 8))
-    
     for i in range(0, len(liste), colonnes):
         ligne = liste[i:i+colonnes]
-        # On formate chaque nombre pour qu'il prenne 6 caractères d'espace
         print("".join(f"{num:^8}" for num in ligne))
-    
     print("-" * (colonnes * 8))
 
 # --- PROGRAMME PRINCIPAL ---
 
 def menu():
-    print("\n" + "="*40)
-    print("      OUTIL D'ARITHMÉTIQUE COMPLET")
-    print("="*40)
+    print("\n" + "="*45)
+    print("      SOLVEUR MATHÉMATIQUE (ARITHMÉTIQUE)")
+    print("="*45)
     print("1 : Calculer PGCD et PPCM")
-    print("2 : Résoudre l'équation diophantienne (ax + by = c)")
+    print("2 : Résoudre l'équation ax + by = c")
     print("3 : Crible d'Ératosthène (Nombres premiers)")
     print("Q : Quitter")
     return input("\nVotre choix : ").upper()
@@ -63,37 +51,57 @@ while True:
     choix = menu()
 
     if choix == 'Q':
-        print("Au revoir !")
+        print("\nFin du programme. À bientôt !")
         break
 
     try:
         if choix in ['1', '2']:
-            a = int(input("Entrez a : "))
-            b = int(input("Entrez b : "))
-            
+            a = int(input("Entrez la valeur de a : "))
+            b = int(input("Entrez la valeur de b : "))
             pgcd, u, v = euclide_etendu(a, b)
             
             if choix == '1':
                 ppcm = abs(a * b) // pgcd
-                print(f"\n[RÉSULTATS]\nPGCD({a}, {b}) = {pgcd}\nPPCM({a}, {b}) = {ppcm}")
-            
+                print(f"\n>>> RÉSULTATS :")
+                print(f"    PGCD({a}, {b}) = {pgcd}")
+                print(f"    PPCM({a}, {b}) = {ppcm}")
+
             elif choix == '2':
-                c = int(input("Entrez c : "))
-                sol = resoudre_diophantienne(a, b, c)
-                if sol:
-                    pg, x0, y0 = sol
-                    print(f"\n[SOLUTION]\nUne solution : {a}({x0}) + {b}({y0}) = {c}")
-                    print(f"Formule générale : x = {x0} + {b//pg}k  |  y = {y0} - {a//pg}k")
+                c = int(input("Entrez la valeur de c : "))
+                print(f"\nÉquation à résoudre : {a}x + {b}y = {c}")
+                
+                if c % pgcd != 0:
+                    print(f"\n[!] AUCUNE SOLUTION ENTIÈRE")
+                    print(f"L'équation n'a pas de solution car le PGCD({pgcd}) ne divise pas {c}.")
                 else:
-                    print(f"\nAucune solution : {c} n'est pas divisible par le PGCD ({pgcd})")
+                    # Calcul de la solution particulière
+                    facteur = c // pgcd
+                    x0 = u * facteur
+                    y0 = v * facteur
+                    
+                    # Coefficients pour la solution générale
+                    k_x = b // pgcd
+                    k_y = a // pgcd
+
+                    print(f"\n>>> 1. SOLUTION PARTICULIÈRE :")
+                    print(f"    x0 = {x0}")
+                    print(f"    y0 = {y0}")
+                    print(f"    Vérification : {a}*({x0}) + {b}*({y0}) = {a*x0 + b*y0}")
+
+                    print(f"\n>>> 2. SOLUTION GÉNÉRALE (k ∈ ℤ) :")
+                    # On gère l'affichage des signes pour plus de clarté
+                    signe_x = "+" if k_x >= 0 else ""
+                    signe_y = "-" if k_y >= 0 else "+"
+                    print(f"    x = {x0} {signe_x} {abs(k_x)}k")
+                    print(f"    y = {y0} {signe_y} {abs(k_y)}k")
 
         elif choix == '3':
-            n = int(input("Afficher les nombres premiers jusqu'à : "))
-            liste_p = crible_eratosthene(n)
+            limite = int(input("Jusqu'à quel nombre voulez-vous chercher ? "))
+            liste_p = crible_eratosthene(limite)
             afficher_tableau_premiers(liste_p)
 
         else:
-            print("Choix invalide, recommencez.")
+            print("\nChoix non reconnu. Veuillez taper 1, 2, 3 ou Q.")
 
     except ValueError:
-        print("\nErreur : Entrez des nombres entiers valides.")
+        print("\nErreur : Veuillez saisir un nombre entier valide.")
